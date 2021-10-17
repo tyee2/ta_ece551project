@@ -73,7 +73,8 @@ module UART_wrapper(
 		if(!rst_n)
 			high_byte <= 8'h00; 
 		else if(sel_high)
-			high_byte <= rx_data; 
+			high_byte <= rx_data;
+		// else hold high_byte
 
 	// SR flop for cmd_rdy
 	always_ff @(posedge clk, negedge rst_n)
