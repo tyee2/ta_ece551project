@@ -5,6 +5,7 @@ module UART_tb();
 	logic [7:0] tx_data, rx_data; 
 	logic tx_done, rdy; 
 
+	// instantiate the UART
 	UART_rx iRECEIVE(.clk(clk), .rst_n(rst_n), .RX(TX_to_RX), .clr_rdy(clr_rdy), .rx_data(rx_data), .rdy(rdy)); 
 	UART_tx iTRANSMIT(.clk(clk), .rst_n(rst_n), .TX(TX_to_RX), .trmt(trmt), .tx_data(tx_data), .tx_done(tx_done)); 
 
