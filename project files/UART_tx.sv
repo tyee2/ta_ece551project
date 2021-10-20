@@ -9,7 +9,7 @@ module UART_tx(
 	typedef enum reg {IDLE, TRANSMIT} state_t; 
 	state_t state, nxt_state; 
 	
-	logic load, transmitting, set_done, clr_done; 
+	logic init, transmitting, set_done, clr_done; 
 	logic shift; 
 
 	// shift register output
@@ -25,7 +25,7 @@ module UART_tx(
 	always_ff @(posedge clk, negedge rst_n) begin
 		if(!rst_n)
 			bit_cnt <= 4'h0; 
-		else if(load) 
+		else if(init) 
 			bit_cnt <= 4'h0; 
 		else if(shift) 
 			bit_cnt <= bit_cnt + 1;
@@ -35,21 +35,21 @@ module UART_tx(
 	always_ff @(posedge clk, negedge rst_n) begin
 		if(!rst_n)
 			baud_cnt <= 12'h000;
-		else if (load || shift)
+		else if (init || shift)
 			baud_cnt <= 12'h000; 
 		else if(transmitting)
 			baud_cnt <= baud_cnt + 1; 
 	end
 
 	// shift after a baud cycle
-	assign shift = (baud_cnt == 12'd2603); 
+	assign shift = (baud_cnt == 12'd2604); 
 
 
 	////////////// shift register ////////////////
 	always_ff @(posedge clk, negedge rst_n) begin
 		if(!rst_n) 
 			tx_shift_reg <= 9'h1FF; 
-		else if(load)
+		else if(init)
 			tx_shift_reg <= {tx_data, 1'b0}; 
 		else if(shift) 
 			tx_shift_reg <= {1'b1, tx_shift_reg[8:1]}; 
@@ -71,7 +71,7 @@ module UART_tx(
 	// SM transition and output logic
 	always_comb begin
 		// default outputs and next state
-		load = 0; 
+		init = 0; 
 		transmitting = 0; 
 		set_done = 0; 
 		clr_done = 0;  
@@ -87,7 +87,7 @@ module UART_tx(
 			
 			// default = IDLE		
 			default: if(trmt) begin
-				load = 1; 
+				init = 1; 
 				clr_done = 1; 
 				nxt_state = TRANSMIT; 
 			end 

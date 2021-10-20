@@ -50,7 +50,7 @@ module UART_rx(
 	end
 
 	// shift after a baud cycle
-	assign shift = (baud_cnt == 12'd2603); 
+	assign shift = (baud_cnt == 12'd2604); 
 	
 
 	///////// metastability flops for RX /////////
@@ -101,7 +101,9 @@ module UART_rx(
 			RECEIVE: if(bit_cnt == 4'd10) begin
 				set_rdy = 1; 
 				nxt_state = IDLE; 
-			end else begin
+			end 
+			
+			else begin
 				receiving = 1; 
 			end
 			

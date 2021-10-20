@@ -8,3 +8,7 @@ work/_info
 transcript
 project_fall21.cr.mti
 vsim.wlf
+project files/project.cr.mti
+*.mti
+project files/work/_info
+project files/work/_vmake
