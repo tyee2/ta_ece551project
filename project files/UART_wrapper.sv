@@ -66,6 +66,7 @@ module UART_wrapper(
 					nxt_state = HIGH;
 				end
 			end
+		endcase
 	end
 	
 	// flop to save the high byte
