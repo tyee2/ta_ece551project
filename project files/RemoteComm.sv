@@ -1,19 +1,19 @@
 module RemoteComm(
-	input 	clk, rst_n,
-	input 	RX,
-	input 	snd_cmd,
-	input  	[15:0] cmd,
+	input 				clk, rst_n,
+	input 				RX,
+	input 				snd_cmd,
+	input [15:0]  		cmd,
 	
-	output 	TX,
-	output 	cmd_snt,
-	output 	[7:0] resp,
-	output 	resp_rdy
+	output 				TX,
+	output reg 			cmd_snt,
+	output [7:0] 		resp,
+	output 				resp_rdy
 );
 	// datapath signals
 	logic [7:0] tx_data, low_byte;
 
 	// SM states
-	typedef enum reg [1:0] {HIGH,LOW} state_t;
+	typedef enum reg [1:0] {IDLE,HIGH,LOW} state_t;
 	state_t state, nxt_state;
 
 	// SM inputs
@@ -34,8 +34,8 @@ module RemoteComm(
 		.trmt(trmt),
 		.tx_data(tx_data),
 		.tx_done(tx_done)
-	)
-	
+	);
+
 	//////////// Datapath /////////////
 	assign tx_data = sel_high ? cmd[15:8] : low_byte;
 	
@@ -44,14 +44,14 @@ module RemoteComm(
 		if(snd_cmd)
 			low_byte <= cmd[7:0];
 	
-	// SR flop for cmd_rdy
+	// SR flop for cmd_snt
 	always_ff @(posedge clk, negedge rst_n) begin
 		if(!rst_n)
-			cmd_rdy <= 0;
+			cmd_snt <= 0;
 		else if(snd_cmd)
-			cmd_rdy <= 0;
-		else if(set_cmd_rdy)
-			cmd_rdy <= 1;
+			cmd_snt <= 0;
+		else if(set_cmd_snt)
+			cmd_snt <= 1;
 	end
 	
 	////////// State machine //////////
@@ -68,7 +68,7 @@ module RemoteComm(
 		sel_high = 0;
 		clr_rx_rdy = 0;
 		trmt = 0;
-		set_cmd_rdy = 0;
+		set_cmd_snt = 0;
 		
 		case(state)
 			default: // IDLE
@@ -87,7 +87,7 @@ module RemoteComm(
 
 			LOW: begin
 				if(tx_done) begin
-					set_cmd_rdy = 1;
+					set_cmd_snt = 1;
 					nxt_state = IDLE;
 				end
 			end

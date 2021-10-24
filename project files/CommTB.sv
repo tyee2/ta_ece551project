@@ -8,7 +8,7 @@ module CommTB();
     logic trmt, tx_done, cmd_rdy;
 
     // instantiate both RemoteComm and UART_wrapper
-    RemoteComm(
+    RemoteComm iTX(
         .clk(clk), 
         .rst_n(rst_n),
         .RX(RX_TX),
@@ -20,7 +20,7 @@ module CommTB();
         .resp_rdy() // not testing response
     );
 
-    UART_wrapper(
+    UART_wrapper iRX(
         .clk(clk), 
         .rst_n(rst_n),
         .RX(TX_RX),
@@ -66,8 +66,8 @@ module CommTB();
 				
 				assert(cmd_in == cmd_out) $display("PASS: cmd received is the same as the cmd sent. cmd: %h", cmd_in);
 				else begin
-					$display("ERROR: Data was not sent and received properly. 
-                    cmd received was %h and cmd sent was %h", cmd_out, cmd_in); 
+					$display("ERROR: Data was not sent and received properly. " +
+                    "cmd received was %h and cmd sent was %h", cmd_out, cmd_in); 
 					$stop;
 				end
 			end
