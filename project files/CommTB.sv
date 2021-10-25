@@ -38,7 +38,7 @@ module CommTB();
 		clk = 1'b0; 
 		rst_n = 1'b0; 	
         clr_cmd_rdy = 1'b0;
-        trmt = 0;
+        trmt = 1'b0;
 		
 		@(negedge clk);
 		rst_n = 1'b1; 
