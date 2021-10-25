@@ -85,7 +85,6 @@ module UART_wrapper(
 			cmd_rdy <= 0;
 		else if(set_cmd_rdy)
 			cmd_rdy <= 1;
-
 		// else hold cmd_rdy
 		
 	assign cmd = {high_byte,rx_data};
