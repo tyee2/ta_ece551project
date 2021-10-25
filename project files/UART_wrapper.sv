@@ -52,8 +52,8 @@ module UART_wrapper(
 		// high byte is sent first, followed by the low byte
 		case(state)
 			HIGH: begin
-				sel_high = 1;
 				if(rx_rdy) begin
+					sel_high = 1;
 					clr_rdy = 1;
 					nxt_state = LOW;
 				end
@@ -81,10 +81,10 @@ module UART_wrapper(
 	always_ff @(posedge clk, negedge rst_n)
 		if(!rst_n)
 			cmd_rdy <= 0; 
+		else if(clr_cmd_rdy || ~RX)
+			cmd_rdy <= 0;
 		else if(set_cmd_rdy)
 			cmd_rdy <= 1;
-		else if(clr_cmd_rdy || sel_high)
-			cmd_rdy <= 0;
 
 		// else hold cmd_rdy
 		

@@ -51,14 +51,14 @@ module CommTB();
         $display("TEST 1: sending and receiving functionality for cmd=%h",cmd_in);
 		fork
 			begin: timeout_tx1
-				repeat(100000) @(posedge clk);
-				$display("ERROR: transmission never completed after 100000 cycles.");
+				repeat(150000) @(posedge clk);
+				$display("ERROR: transmission never completed after 150000 cycles.");
 				$stop;
 			end
 			
 			begin: timeout_rx1
-				repeat(100000) @(posedge clk);
-				$display("ERROR: receiver never asserted rdy after 100000 cycles.");
+				repeat(150000) @(posedge clk);
+				$display("ERROR: receiver never asserted rdy after 150000 cycles.");
 				$stop;
 			end
 			
@@ -76,6 +76,7 @@ module CommTB();
 			end
 		join
 
+		$display("TEST 2: deasserting cmd_rdy with another command.");
         @(negedge clk);
         snd_cmd = 1'b1; 
 		cmd_in = 16'h1234;
@@ -83,18 +84,24 @@ module CommTB();
 		@(negedge clk);
 		snd_cmd = 1'b0;
 
-        $display("TEST 2: deasserting cmd_rdy with another command." +
-        "testing sending/receiving functionality for cmd=%h.",cmd_in);
+		assert(cmd_rdy === 0) 
+			$display("PASS: cmd_rdy was deasserted properly.");
+		else begin
+			$display("ERROR: cmd_rdy was not deasserted with another cmd."); 
+			$stop;
+		end
+
+        $display("TEST 3: testing sending/receiving functionality for cmd=%h.",cmd_in);
 		fork
 			begin: timeout_tx2
-				repeat(100000) @(posedge clk);
-				$display("ERROR: transmission never completed after 100000 cycles.");
+				repeat(150000) @(posedge clk);
+				$display("ERROR: transmission never completed after 150000 cycles.");
 				$stop;
 			end
 			
 			begin: timeout_rx2
-				repeat(100000) @(posedge clk);
-				$display("ERROR: receiver never asserted rdy after 100000 cycles.");
+				repeat(150000) @(posedge clk);
+				$display("ERROR: receiver never asserted rdy after 150000 cycles.");
 				$stop;
 			end
 			
@@ -110,12 +117,6 @@ module CommTB();
 					$stop;
 				end
 
-                assert(cmd_rdy === 0) 
-                    $display("PASS: cmd_rdy was deasserted properly.");
-				else begin
-					$display("ERROR: cmd_rdy was not deasserted with another cmd."); 
-					$stop;
-				end
 			end
 		join
 
@@ -128,14 +129,14 @@ module CommTB();
 		snd_cmd = 1'b0;
         fork
 			begin: timeout_tx3
-				repeat(100000) @(posedge clk);
-				$display("ERROR: transmission never completed after 100000 cycles.");
+				repeat(150000) @(posedge clk);
+				$display("ERROR: transmission never completed after 150000 cycles.");
 				$stop;
 			end
 			
 			begin: timeout_rx3
-				repeat(100000) @(posedge clk);
-				$display("ERROR: receiver never asserted rdy after 100000 cycles.");
+				repeat(150000) @(posedge clk);
+				$display("ERROR: receiver never asserted rdy after 150000 cycles.");
 				$stop;
 			end
 			
