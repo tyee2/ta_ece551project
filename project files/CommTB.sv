@@ -84,6 +84,8 @@ module CommTB();
 		@(negedge clk);
 		snd_cmd = 1'b0;
 
+		@(posedge clk);
+
 		assert(cmd_rdy === 0) 
 			$display("PASS: cmd_rdy was deasserted properly.");
 		else begin
