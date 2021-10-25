@@ -84,7 +84,7 @@ module CommTB();
 		@(negedge clk);
 		snd_cmd = 1'b0;
 
-		@(posedge clk);
+		repeat(2) @(posedge clk);
 
 		assert(cmd_rdy === 0) 
 			$display("PASS: cmd_rdy was deasserted properly.");
@@ -122,7 +122,7 @@ module CommTB();
 			end
 		join
 
-        $display("TEST 3: asserting clr_cmd_rdy");
+        $display("TEST 4: asserting clr_cmd_rdy");
         @(negedge clk);
         snd_cmd = 1'b1; 
 		cmd_in = 16'hFFFF;
