@@ -20,6 +20,7 @@ module SPI_mnrch(
 	
 	// 16-bit shift register
 	logic [15:0] shft_reg;
+	logic MISO_smpl;
 
 	// SM outputs
 	logic smpl, init, shift, rst_cnt, set_done, ld_SCLK;
@@ -71,6 +72,8 @@ module SPI_mnrch(
 			bit_cnt <= bit_cnt + 1;
 			
 	assign done15 = &bit_cnt;
+	
+	///////// shift register /////////
 	
 	////////// state machine //////////
 	
