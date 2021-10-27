@@ -25,7 +25,8 @@ module SPI_mnrch(
 	// SM outputs
 	logic smpl, init, shift, rst_cnt, set_done, ld_SCLK;
 	
-
+	typedef enum reg [1:0] { IDLE, SKIP, WAIT15, DONE } state_t;
+	state_t state, nxt_state;
 
 	////////// SCLK datapath //////////
 	// 5-bit SCLK counter (requires preset since SCLK normally high)
@@ -34,7 +35,7 @@ module SPI_mnrch(
 			SCLK_div <= 5'h10;
 		else if(ld_SCLK)
 			SCLK_div <= 5'h17;
-		else
+		else if()
 			SCLK_div <= SCLK_div + 1;
 
 	// falling edge detection of SCLK
@@ -73,9 +74,33 @@ module SPI_mnrch(
 			
 	assign done15 = &bit_cnt;
 	
-	///////// shift register /////////
+	////////// shift register /////////
+	always_ff @(posedge clk, negedge rst_n)
+		if(smpl)
+			MISO_smpl <= MISO;
+
+	always_ff @(posedge clk, negedge rst_n)
+		if(!rst_n)
+			shft_reg <= 16'hFFFF;
+		else if(init)
+			shft_reg <= wt_data;
+		else if(shift)
+			shft_reg <= {shft_reg[14:0],MISO_smpl};
+
+	assign MOSI = shft_reg[15];
 	
 	////////// state machine //////////
+	// state register
+	always_ff @(posedge clk, negedge rst_n)
+		if(!rst_n)
+			state <= IDLE;
+		else
+			state <= nxt_state;
+	
+	// TODO: output and transition logic
+	always_comb begin
+		nxt_state = state;
+	end
 	
 	// SR flop for done
 	always_ff @(posedge clk, negedge rst_n)
