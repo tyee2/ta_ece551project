@@ -11,7 +11,6 @@ module SPI_mnrch(
 );
 	// SCLK counter and signals
 	logic [4:0] SCLK_div;
-	logic SCLK_ff1, SCLK_ff2;
 	logic SCLK_fall, SCLK_rise;
 	
 	// bit counter
@@ -37,23 +36,12 @@ module SPI_mnrch(
 			SCLK_div <= 5'h17;
 		else if()
 			SCLK_div <= SCLK_div + 1;
-
-	// falling edge detection of SCLK
-	always_ff @(posedge clk, negedge rst_n)
-		if (!rst_n) begin
-			SCLK_ff1 <= 1;
-			SCLK_ff2 <= 1;
-		end 
-		else begin
-			SCLK_ff1 <= SCLK;
-			SCLK_ff2 <= SCLK_ff1;
-		end
 		
 	// SS_n
 	always @(posedge clk, negedge rst_n)
 		if(!rst_n)
 			SS_n <= 1;
-		else if(done15 && SCLK_fall)
+		else if(done)
 			SS_n <= 1;
 		else if(init)
 			SS_n <= 0;
@@ -61,6 +49,7 @@ module SPI_mnrch(
 	assign SCLK = SCLK_div[4];
 	assign shift = &SCLK_div;
 	
+	// imminent fall/rise
 	assign SCLK_fall = ~SCLK_ff1 & SCLK_ff2;
 	assign SCLK_rise = SCLK_ff1 & ~SCLK_ff2;
 	
@@ -100,6 +89,9 @@ module SPI_mnrch(
 	// TODO: output and transition logic
 	always_comb begin
 		nxt_state = state;
+		case(state)
+		
+		endcase
 	end
 	
 	// SR flop for done
