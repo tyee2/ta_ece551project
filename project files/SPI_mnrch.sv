@@ -24,34 +24,23 @@ module SPI_mnrch(
 	// SM outputs
 	logic smpl, init, shift, rst_cnt, set_done, ld_SCLK;
 	
-	typedef enum reg [1:0] { IDLE, SKIP, WAIT15, DONE } state_t;
+	typedef enum reg [1:0] { IDLE, SKIP, WAIT15, BP } state_t;
 	state_t state, nxt_state;
 
 	////////// SCLK datapath //////////
 	// 5-bit SCLK counter (requires preset since SCLK normally high)
-	always_ff @(posedge clk, negedge rst_n)
-		if(!rst_n)
-			SCLK_div <= 5'h10;
-		else if(ld_SCLK)
-			SCLK_div <= 5'h17;
+	always_ff @(posedge clk)
+		if(ld_SCLK)
+			SCLK_div <= 5'b10111;
 		else if()
 			SCLK_div <= SCLK_div + 1;
-		
-	// SS_n
-	always @(posedge clk, negedge rst_n)
-		if(!rst_n)
-			SS_n <= 1;
-		else if(done)
-			SS_n <= 1;
-		else if(init)
-			SS_n <= 0;
 		
 	assign SCLK = SCLK_div[4];
 	assign shift = &SCLK_div;
 	
 	// imminent fall/rise
-	assign SCLK_fall = ~SCLK_ff1 & SCLK_ff2;
-	assign SCLK_rise = SCLK_ff1 & ~SCLK_ff2;
+	assign SCLK_fall = (SCLK_div == 5'b11111);
+	assign SCLK_rise = (SCLK_div == 5'b01111);
 	
 	
 	/////// bit counter datapath ///////
@@ -63,6 +52,7 @@ module SPI_mnrch(
 			
 	assign done15 = &bit_cnt;
 	
+
 	////////// shift register /////////
 	always_ff @(posedge clk, negedge rst_n)
 		if(smpl)
@@ -78,6 +68,7 @@ module SPI_mnrch(
 
 	assign MOSI = shft_reg[15];
 	
+
 	////////// state machine //////////
 	// state register
 	always_ff @(posedge clk, negedge rst_n)
@@ -86,11 +77,49 @@ module SPI_mnrch(
 		else
 			state <= nxt_state;
 	
-	// TODO: output and transition logic
+	// output and transition logic
 	always_comb begin
+		// default outputs
 		nxt_state = state;
+		ld_SCLK = 0;
+		init = 0;
+		shift = 0;
+		smpl = 0;
+		set_done = 0;
+
 		case(state)
-		
+			IDLE: begin
+				ld_SCLK = 1;
+				if(wrt) begin
+					init = 1;
+					nxt_state = SKIP;
+				end
+			end
+
+			SKIP: begin
+				if(SCLK_fall)
+					nxt_state = WAIT15;
+			end
+
+			WAIT15: begin
+				if(done15)
+					nxt_state = BP;
+				else if(SCLK_rise)
+					smpl = 1;
+				else if(SCLK_fall)
+					shift = 1;
+			end
+
+			BP: begin
+				if(SCLK_rise)
+					smpl = 1;
+				else if(SCLK_fall) begin
+					set_done = 1;
+					shift = 1;
+					ld_SCLK = 1;
+				end
+
+			end
 		endcase
 	end
 	
@@ -102,4 +131,13 @@ module SPI_mnrch(
 			done <= 0;
 		else if(set_done)
 			done <= 1;
+
+	// SR flop for SS_n
+	always @(posedge clk, negedge rst_n)
+		if(!rst_n)
+			SS_n <= 1;
+		else if(init)
+			SS_n <= 0;
+		else if(set_done)
+			SS_n <= 1;
 endmodule
