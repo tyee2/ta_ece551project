@@ -3,10 +3,10 @@ module SPI_mnrch(
 	input 				wrt,
 	input [15:0]		wt_data,
 	input 				MISO,
-	output 				SS_n,
+	output logic		SS_n,
 	output 				SCLK,
 	output 				MOSI,
-	output 				done,
+	output logic		done,
 	output [15:0]		rd_data
 );
 	// SCLK counter and signals
@@ -28,15 +28,14 @@ module SPI_mnrch(
 	state_t state, nxt_state;
 
 	////////// SCLK datapath //////////
-	// 5-bit SCLK counter (requires preset since SCLK normally high)
+	// 5-bit SCLK counter
 	always_ff @(posedge clk)
 		if(ld_SCLK)
 			SCLK_div <= 5'b10111;
-		else if()
+		else
 			SCLK_div <= SCLK_div + 1;
 		
 	assign SCLK = SCLK_div[4];
-	assign shift = &SCLK_div;
 	
 	// imminent fall/rise
 	assign SCLK_fall = (SCLK_div == 5'b11111);
