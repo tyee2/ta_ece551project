@@ -38,13 +38,33 @@ module SPI_mnrch_tb();
         @(negedge clk); 
         rst_n = 1;
         @(posedge clk); 
-        wrt=0;
+        wrt = 0;
 
         @(posedge done) 
         if(rd_data[7:0] !== 8'h6A) begin
             $display("WHO_AM_I register did not return the correct value. Expected 6A, got %h", rd_data[7:0]);
             $stop();
         end
+
+        wt_data = 16'hA6xx;
+
+        @(posedge clk);
+        @(negedge clk); 
+        wrt = 1;
+        @(posedge clk); 
+        wrt = 0;
+
+        @(posedge done) 
+
+        wt_data = 16'hA7xx;
+
+        @(posedge clk);
+        @(negedge clk); 
+        wrt = 1;
+        @(posedge clk); 
+        wrt = 0;
+
+        @(posedge done) 
 
         $display("All tests passed!");
         $stop();

@@ -87,6 +87,7 @@ module SPI_mnrch(
 		set_done = 0;
 
 		case(state)
+			// wait for first SPI transaction
 			IDLE: begin
 				ld_SCLK = 1;
 				if(wrt) begin
@@ -95,11 +96,14 @@ module SPI_mnrch(
 				end
 			end
 
+			// do not shift on first falling edge
 			SKIP: begin
 				if(SCLK_fall)
 					nxt_state = WAIT15;
 			end
 
+			// sample on rise, shift on fall
+			// done15 asserted before last bit is sampled
 			WAIT15: begin
 				if(done15)
 					nxt_state = BP;
@@ -109,14 +113,16 @@ module SPI_mnrch(
 					shift = 1;
 			end
 
+			// sample last bit and freeze SCLK on next imminent fall
 			BP: begin
-				if(SCLK_rise)
-					smpl = 1;
-				else if(SCLK_fall) begin
+				if(SCLK_fall) begin
 					set_done = 1;
 					shift = 1;
 					ld_SCLK = 1;
-				end
+					nxt_state = IDLE;
+				end 
+				else if(SCLK_rise)
+					smpl = 1;
 
 			end
 		endcase
@@ -139,4 +145,6 @@ module SPI_mnrch(
 			SS_n <= 0;
 		else if(set_done)
 			SS_n <= 1;
+
+	assign rd_data = shft_reg;
 endmodule
