@@ -24,7 +24,8 @@ module UART_tb();
 		@(negedge clk);
 		trmt = 1'b0;		// deasserting trmt to stay in IDLE state after TRANSMIT is finished
 
-		// Testing functionality of tx_done and the sending/receiving of information	
+		// Testing functionality of tx_done and the sending/receiving of information
+		// hmm... could this have been done with a task?
 		fork
 			begin: timeout_tx1
 				repeat(100000) @(posedge clk);
