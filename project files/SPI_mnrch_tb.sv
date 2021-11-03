@@ -31,11 +31,12 @@ module SPI_mnrch_tb();
     initial begin
         clk = 0;
         rst_n = 0;
-        wrt = 1;
+        wrt = 0;
         wt_data = 16'h8Fxx;
 
         @(posedge clk);
         @(negedge clk); 
+		wrt = 1;
         rst_n = 1;
         @(posedge clk); 
         wrt = 0;
@@ -45,7 +46,20 @@ module SPI_mnrch_tb();
             $display("WHO_AM_I register did not return the correct value. Expected 6A, got %h", rd_data[7:0]);
             $stop();
         end
+		
+		@(posedge clk);
+		
+		// INT config
+		wt_data = 16'h0D02;
 
+        @(posedge clk);
+        @(negedge clk); 
+        wrt = 1;
+        @(posedge clk); 
+        wrt = 0;
+		
+		@(posedge INT);
+		
         wt_data = 16'hA6xx;
 
         @(posedge clk);
