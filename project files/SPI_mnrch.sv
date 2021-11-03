@@ -53,7 +53,7 @@ module SPI_mnrch(
 	
 
 	////////// shift register /////////
-	always_ff @(posedge clk, negedge rst_n)
+	always_ff @(posedge clk)
 		if(smpl)
 			MISO_smpl <= MISO;
 
