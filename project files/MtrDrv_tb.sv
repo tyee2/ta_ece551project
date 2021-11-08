@@ -9,7 +9,16 @@ module MtrDrv_tb();
 	wire lftPWM1, lftPWM2, rghtPWM1, rghtPWM2;
 	
 	// instantiate DUT
-	MtrDrv iDUT(.clk(clk),.rst_n(rst_n),.lft_spd(lft_spd),.rght_spd(rght_spd),.lftPWM1(lftPWM1),.lftPWM2(lftPWM2),.rghtPWM1(rghtPWM1),.rghtPWM2(rghtPWM2));
+	MtrDrv iDUT(
+		.clk(clk),
+		.rst_n(rst_n),
+		.lft_spd(lft_spd),
+		.rght_spd(rght_spd),
+		.lftPWM1(lftPWM1),
+		.lftPWM2(lftPWM2),
+		.rghtPWM1(rghtPWM1),
+		.rghtPWM2(rghtPWM2)
+	);
 	
 	initial begin
 		clk = 0;

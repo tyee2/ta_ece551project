@@ -36,30 +36,37 @@ module SPI_mnrch_tb();
 
         @(posedge clk);
         @(negedge clk); 
-		wrt = 1;
+        wrt = 1;
         rst_n = 1;
         @(posedge clk); 
         wrt = 0;
 
-        @(posedge done) 
+        wait4sig(done,100000);
         if(rd_data[7:0] !== 8'h6A) begin
             $display("WHO_AM_I register did not return the correct value. Expected 6A, got %h", rd_data[7:0]);
             $stop();
         end
+
+        @(posedge clk);
 		
-		@(posedge clk);
-		
-		// INT config
-		wt_data = 16'h0D02;
+        // INT config
+        wt_data = 16'h0D02;
 
         @(posedge clk);
         @(negedge clk); 
         wrt = 1;
         @(posedge clk); 
         wrt = 0;
+
+        wait4sig(done,100000);
+        @(posedge clk);
+        if(iS.NEMO_setup !== 1) begin
+            $display("NEMO_setup was never asserted after configuring the INT register");
+            $stop();
+        end
 		
-		@(posedge INT);
-		
+        @(posedge INT);
+
         wt_data = 16'hA6xx;
 
         @(posedge clk);
@@ -68,7 +75,11 @@ module SPI_mnrch_tb();
         @(posedge clk); 
         wrt = 0;
 
-        @(posedge done) 
+        wait4sig(done,100000);
+        if(INT !== 0) begin
+            $display("INT should fall when reading A6");
+            $stop();
+        end
 
         wt_data = 16'hA7xx;
 
@@ -78,7 +89,7 @@ module SPI_mnrch_tb();
         @(posedge clk); 
         wrt = 0;
 
-        @(posedge done) 
+        @(posedge done);
 
         $display("All tests passed!");
         $stop();
@@ -86,4 +97,5 @@ module SPI_mnrch_tb();
 
     always #5 clk = ~clk;
 
+    `include "tb_tasks.sv"
 endmodule
