@@ -204,7 +204,7 @@ module SPI_iNEMO2(SS_n,SCLK,MISO,MOSI,INT);
 		7'h23 : begin response = inert_data[inert_ptr][47:40]; clr_INT=0; end
 	    7'h24 : begin response = inert_data[inert_ptr][23:16]; clr_INT=0; end
 		7'h25 : begin response = inert_data[inert_ptr][31:24]; clr_INT=0; end
-	    7'h26 : begin response = inert_data[inert_ptr][7:0]; clr_INT=0; end
+	    7'h26 : begin response = inert_data[inert_ptr][7:0]; clr_INT=1; end
 		7'h27 : begin response = inert_data[inert_ptr][15:8]; clr_INT=0; end
 	    7'h28 : begin response = inert_data[inert_ptr][87:80]; clr_INT=0; end
 		7'h29 : begin response = inert_data[inert_ptr][95:88]; clr_INT=0; end
