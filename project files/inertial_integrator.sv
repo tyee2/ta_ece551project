@@ -1,5 +1,5 @@
 module inertial_integrator(clk,rst_n,strt_cal,cal_done,vld,rdy,yaw_rt,
-                           lftIR,rghtIR,heading,moving,LED);
+                           lftIR,rghtIR,heading,moving);
 						   
 parameter FAST_SIM = 1;		// used for speeding up simulations.
 
@@ -12,7 +12,7 @@ input moving;						// Only integrate yaw when "going"
 output logic cal_done;				// asserted when calibration is completed
 output reg rdy;
 output signed [11:0] heading;
-output [7:0] LED;
+//output [7:0] LED;
 
   ////////////////////////////////////////////////////////
   // Internal registers (pipelined for timing reasons) //

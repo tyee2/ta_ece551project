@@ -1,3 +1,8 @@
+module inert_intf
+#(
+    parameter FAST_SIM = 1 // set to 1 to speed up simulation
+)
+(
 	input clk,
 	input rst_n,
 	input strt_cal,         // from cmd_proc
@@ -13,10 +18,8 @@
 	output SCLK,
 	output MOSI
 );
-#(
-    parameter FAST_SIM = 1; // set to 1 to speed up simulation
-);
-    ////////////////////// declare enum state type ///////////////////////
+
+    ////////////////////// declare enum state type ////////////////////////
     typedef enum reg [2:0] {INIT1, INIT2, INIT3, WAIT_INT_RDY, RD_YAWL, RD_YAWH} state_t;
     state_t state, nxt_state;
 
@@ -27,6 +30,7 @@
 
     /////////////////////////// internal signals //////////////////////////
     logic signed [15:0] yaw_rt;	// feeds inertial_integrator
+	logic [15:0] rd_data;
 
     logic [15:0] cmd;
     assign cmd = (INT_en_init) ? 16'h0D02 :
@@ -72,6 +76,8 @@
             yawH <= 0;
         else if(C_Y_H)
             yawH <= rd_data[7:0];
+	
+	assign yaw_rt = {yawH,yawL};
 
     // delay vld one cycle when data is actually valid
     always_ff @(posedge clk, negedge rst_n)
@@ -80,8 +86,7 @@
         else
             vld <= yaw_rt_rdy;
 
-  
-    ////////////// instantiate SPI interface and integrator //////////////
+    ////////////// instantiate SPI interface and integrator ///////////////
     SPI_mnrch iSPI(
 		.clk(clk),
 		.rst_n(rst_n),
