@@ -1,5 +1,5 @@
 module inert_intf_test #(
-    parameter FAST_SIM = 0;
+    parameter FAST_SIM = 0
 )
 (
     input               clk,
