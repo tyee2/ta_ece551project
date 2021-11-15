@@ -15,3 +15,4 @@ project files/work/_vmake
 project files/CommTB.sv.bak
 wlf*
 *.sv.bak
+wave.do
