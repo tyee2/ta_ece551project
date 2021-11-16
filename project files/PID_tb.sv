@@ -52,7 +52,7 @@ module PID_tb();
             rght_resp = resp[10:0];
 
             @(posedge clk);
-            // #1; // why does this work without this delay!?
+            #1;
 
             // compare expected response to DUT output //
             if(lft_spd !== lft_resp) begin
