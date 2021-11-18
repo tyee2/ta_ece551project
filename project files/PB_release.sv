@@ -10,9 +10,9 @@ module PB_release(
     // double flop for metastability and flop once more for rise edge detection
     always_ff @(posedge clk, negedge rst_n)
         if(!rst_n) begin
-            PB_ff1 <= 0;
-            PB_ff2 <= 0;
-            PB_ff3 <= 0;
+            PB_ff1 <= 1;
+            PB_ff2 <= 1;
+            PB_ff3 <= 1;
         end
         else begin
             PB_ff1 <= PB;
