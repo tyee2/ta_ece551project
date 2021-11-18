@@ -40,7 +40,7 @@ module charge #(
     dur_t sel_dur;
 
     //////////////////// internal signals ////////////////////
-    logic [23:0] dur_full;
+    logic [24:0] dur_full;
     logic [14:0] freq_full, freq_threshold;
 
     // counters for frequency and duration
@@ -232,7 +232,7 @@ module charge #(
     end
 
     // SR flop for piezo/piezo_n
-    always_ff @(posedge clk, negedge clk)
+    always_ff @(posedge clk, negedge rst_n)
         if(!rst_n)
             piezo <= 0;
         else if(rst_piezo)
