@@ -119,6 +119,7 @@ module charge #(
                 hold = 1;
                 clr_d_cnt = 1;
                 clr_f_cnt = 1;
+                rst_piezo = 1;
                 if(go) begin
                     nxt_state = NOTE1;
                 end
