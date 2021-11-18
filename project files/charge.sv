@@ -48,7 +48,7 @@ module charge #(
     logic [14:0] freq_cnt;
 
     // assign counter thresholds
-    assign freq_full =     (sel_freq == freq_G6) ? G6 :
+    assign freq_full =      (sel_freq == freq_G6) ? G6 :
                             (sel_freq == freq_C7) ? C7 :
                             (sel_freq == freq_E7) ? E7 :
                             (sel_freq == freq_G7) ? G7 : 15'h7FFF;
@@ -59,7 +59,7 @@ module charge #(
                             (sel_freq == freq_G7) ? G7_MID : 15'h3FFF;
 
     // actually one short but who can hear the difference?
-    assign dur_full =      (sel_dur == DUR_1) ? 25'h7FFFFF : 
+    assign dur_full =       (sel_dur == DUR_1) ? 25'h7FFFFF : 
                             (sel_dur == DUR_2) ? 25'hBFFFFF : 
                             (sel_dur == DUR_3) ? 25'h3FFFFF : 
                             (sel_dur == DUR_4) ? 25'hFFFFFF : 25'hFFFFFF;
