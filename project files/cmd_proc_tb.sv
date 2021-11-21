@@ -245,8 +245,10 @@ module cmd_proc_tb();
     end
     
     always #5 clk = ~clk;
+
+    ///////////////////////////////////////// end tests ////////////////////////////////////////
     ////////////////////////////////////////// tasks ///////////////////////////////////////////
-    // sends a 16-bit command
+    // sends a 16-bit command through RemoteComm
     task send(input [15:0] input_cmd);
         begin
             cmd_in = input_cmd;
