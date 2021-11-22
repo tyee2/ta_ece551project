@@ -23,7 +23,7 @@ module cmd_proc #(
 );
     ////////////////////////////// internal signals //////////////////////////////
     logic               cntr_ff;
-    logic               cntr_rise;              // count posedge since cntrIR pulse can be many clocks in width
+    logic               cntr_rise;              // since cntrIR pulse can be many clocks in width
     logic               move_done;              // asserted when # of cntrIR pulses = 2*cmd[2:0]
     logic        [2:0]  num_squares;            // cmd[2:0] reg
     logic        [3:0]  num_crossings;          // # of cntrIR pulses
@@ -52,8 +52,10 @@ module cmd_proc #(
                 else if(clr_frwrd)
                     frwrd <= 10'h000;
                 else if(heading_rdy)
+                    // ramp up to max speed while move is not done
                     if(inc_frwrd && ~max_spd)
                         frwrd <= frwrd + 10'h020;
+                    // ramp down until we stop when we reach last square in move
                     else if (dec_frwrd && |frwrd)
                         frwrd <= frwrd - 10'h040;
         end
@@ -64,8 +66,10 @@ module cmd_proc #(
                 else if(clr_frwrd)
                     frwrd <= 10'h000;
                 else if(heading_rdy)
+                    // ramp up to max speed while move is not done
                     if(inc_frwrd && ~max_spd)
                         frwrd <= frwrd + 10'h004;
+                    // ramp down until we stop when we reach last square in move
                     else if (dec_frwrd && |frwrd)
                         frwrd <= frwrd - 10'h008;
         end

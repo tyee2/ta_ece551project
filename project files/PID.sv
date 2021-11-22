@@ -48,7 +48,7 @@ module PID(
     assign err_sat_ext = {{5{err_sat[9]}},err_sat};
     assign err_int_accum = err_sat_ext + integrator;
     
-    // if MSBs of operands match, MSB of addition result should also match MSB of operand. otherwise overflow.
+    // MSB of addition result should also match MSBs of operands. otherwise overflow.
     assign ov = (~(integrator[14]^err_sat_ext[14])) && (err_int_accum[14] != integrator[14]);
     
     // error is accumulated if valid. otherwise it is frozen at previous value.
