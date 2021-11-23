@@ -78,10 +78,12 @@ module cmd_proc #(
     assign max_spd = &frwrd[9:8];
 
     ////////////////////////////// counting squares //////////////////////////////
-    always_ff @(posedge clk)
+    // squares to move from cmd
+	always_ff @(posedge clk)
         if(move_cmd)
             num_squares <= cmd[2:0];
 
+	// lines crossed (# of times cntrIR pulsed)
     always_ff @(posedge clk)
         if(move_cmd)
             num_crossings <= 0;

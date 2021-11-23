@@ -9,6 +9,7 @@ module SPI_mnrch(
 	output logic		done,
 	output [15:0]		rd_data
 );
+	///////// internal signals /////////
 	// SCLK counter and signals
 	logic [4:0] SCLK_div;
 	logic SCLK_fall, SCLK_rise;
