@@ -44,8 +44,7 @@ module TourCmd(
         else if(done_mv)
             mv_indx <= mv_indx + 1;
 
-    // movement command flop, holds cmd when not enabled
-    // same encoding as slides
+    // movement encoding logic, same encoding as slides
     // [i]:  x   y
     // [0]: -1   2
     // [1]:  1   2
@@ -99,6 +98,7 @@ module TourCmd(
         end
     end
 
+    // SR flop for cmd_rdy from TourCmd
     always_ff @(posedge clk, negedge rst_n)
         if(!rst_n)
             cmd_rdy_TC <= 0;
@@ -106,7 +106,8 @@ module TourCmd(
             cmd_rdy_TC <= 0;
         else if(set_cmd_rdy_TC)
             cmd_rdy_TC <= 1;
-            
+
+    // 0: UART, 1: TourCmd
     assign cmd_rdy = cmd_sel ? cmd_rdy_TC : cmd_rdy_UART;
     assign cmd = cmd_sel ? cmd_TC : cmd_UART;
     ////////////////////////////// end datapath ////////////////////////////////
