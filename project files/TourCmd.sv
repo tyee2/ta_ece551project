@@ -8,9 +8,9 @@ module TourCmd(
     input                       clr_cmd_rdy,    // from cmd_proc (goes to UART_wrapper too)
     input                       send_resp,      // lets us know cmd_proc is done with command
     output reg [4:0]            mv_indx,        // "address" to access next move
-    output     [15:0]           cmd,            // multiplexed cmd to cmd_proc
+    output reg [15:0]           cmd,            // multiplexed cmd to cmd_proc
     output reg                  cmd_rdy,        // cmd_rdy signal to cmd_proc
-    output     [7:0]            resp            // either 0xA5 (done) or 0x5A (in progress)
+    output reg [7:0]            resp            // either 0xA5 (done) or 0x5A (in progress)
 );
     ///////////////////////////// internal signals /////////////////////////////
     // cmd[11:4]
@@ -20,13 +20,14 @@ module TourCmd(
     localparam HEADING_WEST = 8'h3F;
 
     logic [15:0] cmd_TC;                        // move command during tour 
+    logic        cmd_rdy_TC;
 
     ////////////////////////// SM outputs and states ///////////////////////////
     logic        cmd_sel;                       // 0: UART, 1: TourCmd
     logic        done_mv;                       // asserted when L move is complete
     logic        mv1_en;                        // first move segment enable
     logic        mv2_en;                        // second move segment enable
-    logic        send_cmd_SM;                   // one cycle delay for cmd_rdy
+    logic        set_cmd_rdy_TC;                // set cmd_rdy from TourCmd
     logic        clr_mv_cnt;                    // clear move counter upon starting tour
 
     // state type enumeration
@@ -54,54 +55,59 @@ module TourCmd(
     // [5]:  1  -2
     // [6]:  2  -1
     // [7]:  2   1
-    always_ff @(posedge clk, negedge rst_n)
-        if(!rst_n)
-            cmd_TC <= 16'h0;
+    always_comb begin
+        cmd_TC = 16'h0;
 
         // first part of move (vertical)
-        else if(mv1_en) begin
+        if(mv1_en) begin
             if(move[0])
-                cmd_TC <= {4'b0010,HEADING_NORTH,4'h2};
+                cmd_TC = {4'b0010,HEADING_NORTH,4'h2};
             else if(move[1])
-                cmd_TC <= {4'b0010,HEADING_NORTH,4'h2};
+                cmd_TC = {4'b0010,HEADING_NORTH,4'h2};
             else if(move[2])
-                cmd_TC <= {4'b0010,HEADING_NORTH,4'h1};
+                cmd_TC = {4'b0010,HEADING_NORTH,4'h1};
             else if(move[3])
-                cmd_TC <= {4'b0010,HEADING_SOUTH,4'h1};
+                cmd_TC = {4'b0010,HEADING_SOUTH,4'h1};
             else if(move[4])
-                cmd_TC <= {4'b0010,HEADING_SOUTH,4'h2};
+                cmd_TC = {4'b0010,HEADING_SOUTH,4'h2};
             else if(move[5])
-                cmd_TC <= {4'b0010,HEADING_SOUTH,4'h2};
+                cmd_TC = {4'b0010,HEADING_SOUTH,4'h2};
             else if(move[6])
-                cmd_TC <= {4'b0010,HEADING_SOUTH,4'h1};
+                cmd_TC = {4'b0010,HEADING_SOUTH,4'h1};
             else if(move[7])
-                cmd_TC <= {4'b0010,HEADING_NORTH,4'h1};
+                cmd_TC = {4'b0010,HEADING_NORTH,4'h1};
         end
 
         // second part of move with fanfare (horizontal)
         else if(mv2_en) begin
             if(move[0])
-                cmd_TC <= {4'b0011,HEADING_WEST,4'h1};
+                cmd_TC = {4'b0011,HEADING_WEST,4'h1};
             else if(move[1])
-                cmd_TC <= {4'b0011,HEADING_EAST,4'h1};
+                cmd_TC = {4'b0011,HEADING_EAST,4'h1};
             else if(move[2])
-                cmd_TC <= {4'b0011,HEADING_WEST,4'h2};
+                cmd_TC = {4'b0011,HEADING_WEST,4'h2};
             else if(move[3])
-                cmd_TC <= {4'b0011,HEADING_WEST,4'h2};
+                cmd_TC = {4'b0011,HEADING_WEST,4'h2};
             else if(move[4])
-                cmd_TC <= {4'b0011,HEADING_WEST,4'h1};
+                cmd_TC = {4'b0011,HEADING_WEST,4'h1};
             else if(move[5])
-                cmd_TC <= {4'b0011,HEADING_EAST,4'h1};
+                cmd_TC = {4'b0011,HEADING_EAST,4'h1};
             else if(move[6])
-                cmd_TC <= {4'b0011,HEADING_EAST,4'h2};
+                cmd_TC = {4'b0011,HEADING_EAST,4'h2};
             else if(move[7])
-                cmd_TC <= {4'b0011,HEADING_EAST,4'h2};
+                cmd_TC = {4'b0011,HEADING_EAST,4'h2};
         end
+    end
 
-    // flop to delay cmd_rdy one cycle
-    always_ff @(posedge clk)
-        cmd_rdy <= send_cmd_SM;
-
+    always_ff @(posedge clk, negedge rst_n)
+        if(!rst_n)
+            cmd_rdy_TC <= 0;
+        else if(clr_cmd_rdy)
+            cmd_rdy_TC <= 0;
+        else if(set_cmd_rdy_TC)
+            cmd_rdy_TC <= 1;
+            
+    assign cmd_rdy = cmd_sel ? cmd_rdy_TC : cmd_rdy_UART;
     assign cmd = cmd_sel ? cmd_TC : cmd_UART;
     ////////////////////////////// end datapath ////////////////////////////////
     ///////////////////////////// state machine ////////////////////////////////
@@ -118,32 +124,35 @@ module TourCmd(
         nxt_state = state;
         clr_mv_cnt = 0;
         cmd_sel = 0;
-        send_cmd_SM = 0;
+        set_cmd_rdy_TC = 0;
         done_mv = 0;
         mv1_en = 0;
         mv2_en = 0;
+        resp = 8'h5A;
 
         case(state)
             // IDLE: wait for start_tour. mux select passes UART commands to cmd_proc.
             default: begin
                 if(start_tour) begin
-                    cmd_sel = 1;
-                    clr_mv_cnt = 0;
+                    clr_mv_cnt = 1;
                     nxt_state = MOVE_Y;
                 end
             end
 
             // first move segment, no fanfare
             MOVE_Y: begin
+                set_cmd_rdy_TC = 1;
                 cmd_sel = 1;
                 mv1_en = 1;
-                if(clr_cmd_rdy)
+                if(clr_cmd_rdy) begin
                     nxt_state = WAIT_Y;
+                end
             end
 
             // wait until send_resp
             WAIT_Y: begin
                 cmd_sel = 1;
+                mv1_en = 1;
                 if(send_resp) begin
                     nxt_state = MOVE_X;
                 end
@@ -151,18 +160,22 @@ module TourCmd(
 
             // second move segment, play fanfare
             MOVE_X: begin
+                set_cmd_rdy_TC = 1;
                 cmd_sel = 1;
                 mv2_en = 1;
-                if(clr_cmd_rdy)
+                if(clr_cmd_rdy) begin
                     nxt_state = WAIT_X;
+                end
             end
 
             WAIT_X: begin
                 cmd_sel = 1;
+                mv2_en = 1;
                 // done with second move segment
                 if(send_resp) begin
                     // check if last move else go back to second state
                     if(mv_indx == 5'b10111) begin
+                        resp = 8'hA5;
                         nxt_state = IDLE;
                     end
                     else begin
