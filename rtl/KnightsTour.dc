@@ -1,0 +1,85 @@
+#########################
+# Read in verilog files #
+#########################
+read_file -format sverilog { ./charge.sv ./cmd_proc.sv ./inert_intf.sv ./inertial_integrator.sv \
+./IR_intf.sv ./KnightsTour.sv ./MtrDrv.sv ./PID.sv ./PWM11.sv ./RemoteComm.sv ./reset_synch.sv \
+./SPI_mnrch.sv ./TourCmd.sv ./TourLogic.sv ./UART_rx.sv ./UART_tx.sv ./UART_wrapper.sv ./UART.v }
+
+#########################
+# Set UART as top level #
+#########################
+set current_design KnightsTour
+
+##################################################
+# look at the design hierarchy to check children #
+##################################################
+link
+
+#############################################################
+# define a 333MHz clk and tell synopsys not to fuck with it #
+#############################################################
+create_clock -name "clk" -period 3 { clk }
+set_dont_touch_network [find port clk]
+
+#######################################
+# Setup pointer to all inputs but clk #
+#######################################
+set prim_inputs [remove_from_collection [all_inputs] [find port clk]]
+
+#################################################
+# set 0.4 ns input delay for all inputs but clk #
+#################################################
+set_input_delay -clock clk 0.4 [copy_collection $prim_inputs]
+
+#######################################################################
+# define a drive strength equal to NAND2X2_LVT for all inputs but clk #
+#######################################################################
+set_driving_cell -lib_cell NAND2X2_LVT -library saed32lvt_tt0p85v25c $prim_inputs
+
+#############################################
+# define 0.4 ns output delay on all outputs #
+#############################################
+set_output_delay -clock clk 0.4 [all_outputs]
+
+#####################################
+# define 0.1 pF load on all outputs #
+#####################################
+set_load 0.1 [all_outputs]
+
+#####################################################
+# set a max transition time of 0.15 ns on all nodes #
+#####################################################
+set_max_transition 0.15 [current_design]
+
+#########################################################################
+# set synopsys 32nm wire load model for a block of size 16000 sq microns#
+#########################################################################
+set_wire_load_model -name 16000 -library saed32lvt_tt0p85v25c
+
+###################################################
+# compile, flattens the design, and compile again #
+###################################################
+compile -map_effort medium
+ungroup -all -flatten
+compile -map_effort medium
+
+##########################################
+# produce a min_delay & max delay report #
+##########################################
+report_timing -delay min > min_delay.rpt
+report_timing -delay max > max_delay.rpt
+
+##########################
+# produce an area report #
+##########################
+report_area > area.txt
+
+############################################
+# write out the gate level verilog netlist #
+############################################
+write -format verilog UART -output KnightsTour.vg
+
+########################
+# write out a SDC file #
+########################
+write_sdc KnightsTour.sdc
