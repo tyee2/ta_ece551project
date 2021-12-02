@@ -12,14 +12,13 @@ input moving;						// Only integrate yaw when "going"
 output logic cal_done;				// asserted when calibration is completed
 output reg rdy;
 output signed [11:0] heading;
-//output [7:0] LED;
 
   ////////////////////////////////////////////////////////
   // Internal registers (pipelined for timing reasons) //
   //////////////////////////////////////////////////////
   reg signed [18:0] yaw_comp;			// offset compensated gyro rate
   reg signed [18:0] yaw_scaled;			// yaw_comp scaled by 31/32
-  reg vld_ff1;							// pipe vld to keep synch
+  reg vld_ff1,vld_ff2;				// pipe vld to keep synch
 
   
   /////////////////
@@ -84,7 +83,7 @@ output signed [11:0] heading;
 		    nstate = IDLE;
 		end
 		CALIBRATING : begin
-		  en_smpl_cntr = vld;				// count valid samples averaged
+		  en_smpl_cntr = vld_ff1;			// count valid samples averaged
 		  if (enough_smpls) begin			// have 2048 valid samples in offset calcs
 		    cal_done = 1;
 			clr_integrator = 1;
@@ -113,9 +112,15 @@ output signed [11:0] heading;
     yaw_comp <= (compensate_offset) ? {yaw_rt,3'b000}-yaw_off : {{3{yaw_rt[15]}},yaw_rt};
   end
   
+
+  //////////////////////////////////
+  // Calibration factor of 31/32 //
+  ////////////////////////////////
   assign prod_rate = yaw_comp*$signed(6'h1F);	// mult by 31
-  assign yaw_scaled = (compensate_offset) ? prod_rate[23:5] : yaw_comp;		// div by 32
-  
+  always_ff @(posedge clk)
+    if (vld_ff1)
+      yaw_scaled <= (compensate_offset) ? prod_rate[23:5] : yaw_comp;		// div by 32
+
   ///////////////////////////////////////////////////
   // Integrate first 2048 samples to form average //
   // then capture them as offsets to be          //
@@ -140,10 +145,12 @@ output signed [11:0] heading;
   always_ff @(posedge clk, negedge rst_n)
     if (!rst_n) begin
 	  vld_ff1 <= 1'b0;
+	  vld_ff2 <= 1'b0;
 	  rdy <= 1'b0;
 	end else begin
       vld_ff1 <= vld;
-	  rdy <= vld_ff1;
+      vld_ff2 <= vld_ff1;
+	  rdy <= vld_ff2;
 	end
 	
   assign yaw_fusion = (compensate_offset&lftIR&~rghtIR) ? 19'h03000 :
@@ -159,14 +166,18 @@ output signed [11:0] heading;
 	  yaw_int <= 0;
 	end else if (clr_integrator) begin
 	  yaw_int <= 0;
-	end else if ((vld_ff1) && ((!compensate_offset) || (moving))) begin
+	end else if ((vld_ff2) && ((!compensate_offset) || (moving))) begin
 	  /////////////////////////////////////////////////////////////////
 	  // During calibration we use the integrator as accumulators   //
 	  // to get an average of 2048 samples of yaw, which is later  //
 	  // subtracted from each respective reading during RUN state //
 	  /////////////////////////////////////////////////////////////
-	  yaw_int  <= yaw_int + {{8{yaw_scaled[18]}},yaw_scaled} + 
-	                        {{8{yaw_fusion[18]}},yaw_fusion};
+	  if (FAST_SIM)	// speed up integration by 1.5X 
+	    yaw_int  <= yaw_int + {{8{yaw_scaled[18]}},yaw_scaled} + {{9{yaw_scaled[18]}},yaw_scaled[18:1]} +
+	                          {{8{yaw_fusion[18]}},yaw_fusion};
+      else							
+	    yaw_int  <= yaw_int + {{8{yaw_scaled[18]}},yaw_scaled} + 
+	                          {{8{yaw_fusion[18]}},yaw_fusion};
 	end
 	
   always @(posedge clk, negedge rst_n)
@@ -189,8 +200,5 @@ output signed [11:0] heading;
 	// Divide by 2^15. //
 	////////////////////
 	assign heading = yaw_int[26:15];
-				 
-	assign LED = heading[11:4];
-//assign LED = yaw_rt[15:8];
 
 endmodule
