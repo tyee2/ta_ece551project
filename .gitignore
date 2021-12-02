@@ -16,3 +16,4 @@ project files/CommTB.sv.bak
 wlf*
 *.sv.bak
 wave.do
+project files/test.sv
