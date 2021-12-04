@@ -64,17 +64,13 @@ module inert_intf
             timer <= timer + 1;
   
     // holding register for yawL
-    always_ff @(posedge clk, negedge rst_n)
-        if(!rst_n)
-            yawL <= 0;
-        else if(C_Y_L)
+    always_ff @(posedge clk)
+        if(C_Y_L)
             yawL <= rd_data[7:0];
 
     // holding register for yawH
-    always_ff @(posedge clk, negedge rst_n)
-        if(!rst_n)
-            yawH <= 0;
-        else if(C_Y_H)
+    always_ff @(posedge clk)
+        if(C_Y_H)
             yawH <= rd_data[7:0];
 
     assign yaw_rt = {yawH,yawL};

@@ -110,6 +110,9 @@ module TourCmd(
     // 0: UART, 1: TourCmd
     assign cmd_rdy = cmd_sel ? cmd_rdy_TC : cmd_rdy_UART;
     assign cmd = cmd_sel ? cmd_TC : cmd_UART;
+    assign resp = cmd_sel ? 
+                    (mv2_en && mv_indx == 5'b10111 ? 8'hA5 : 8'h5A) : 8'hA5;
+                    
     ////////////////////////////// end datapath ////////////////////////////////
     ///////////////////////////// state machine ////////////////////////////////
     // state register
@@ -129,7 +132,6 @@ module TourCmd(
         done_mv = 0;
         mv1_en = 0;
         mv2_en = 0;
-        resp = 8'h5A;
 
         case(state)
             // IDLE: wait for start_tour. mux select passes UART commands to cmd_proc.
@@ -176,7 +178,6 @@ module TourCmd(
                 if(send_resp) begin
                     // check if last move else go back to second state
                     if(mv_indx == 5'b10111) begin
-                        resp = 8'hA5;
                         nxt_state = IDLE;
                     end
                     else begin

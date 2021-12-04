@@ -56,8 +56,8 @@ module UART_rx(
 	///////// metastability flops for RX /////////
 	always_ff @(posedge clk, negedge rst_n) begin
 		if(!rst_n) begin
-			RX_meta1 <= 0;
-			RX_meta2 <= 0;
+			RX_meta1 <= 1;
+			RX_meta2 <= 1;
 		end
 		
 		else begin

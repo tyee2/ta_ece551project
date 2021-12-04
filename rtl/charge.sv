@@ -41,19 +41,20 @@ module charge #(
 
     //////////////////// internal signals ////////////////////
     logic [24:0] dur_full;
-    logic [14:0] freq_full, freq_threshold;
+    // logic [14:0] freq_full, freq_threshold;
+    logic [13:0] freq_full;
 
     // counters for frequency and duration
     logic [24:0] dur_cnt;
     logic [14:0] freq_cnt;
 
     // assign counter thresholds
-    assign freq_full =      (sel_freq == freq_G6) ? G6 :
-                            (sel_freq == freq_C7) ? C7 :
-                            (sel_freq == freq_E7) ? E7 :
-                            (sel_freq == freq_G7) ? G7 : 15'h7FFF;
+    // assign freq_full =      (sel_freq == freq_G6) ? G6 :
+    //                         (sel_freq == freq_C7) ? C7 :
+    //                         (sel_freq == freq_E7) ? E7 :
+    //                         (sel_freq == freq_G7) ? G7 : 15'h7FFF;
     
-    assign freq_threshold = (sel_freq == freq_G6) ? G6_MID :
+    assign freq_full = (sel_freq == freq_G6) ? G6_MID :
                             (sel_freq == freq_C7) ? C7_MID :
                             (sel_freq == freq_E7) ? E7_MID :
                             (sel_freq == freq_G7) ? G7_MID : 15'h3FFF;
@@ -129,7 +130,7 @@ module charge #(
             NOTE1: begin
                 sel_freq = freq_G6;
                 sel_dur = DUR_1;
-                if(freq_cnt < freq_threshold) begin
+                if(freq_cnt == freq_full) begin
                     set_piezo = 1;
                 end 
                 else begin
@@ -146,7 +147,7 @@ module charge #(
             NOTE2: begin
                 sel_freq = freq_C7;
                 sel_dur = DUR_1;
-                if(freq_cnt < freq_threshold) begin
+                if(freq_cnt == freq_full) begin
                     set_piezo = 1;
                 end 
                 else begin
@@ -163,7 +164,7 @@ module charge #(
             NOTE3: begin
                 sel_freq = freq_E7;
                 sel_dur = DUR_1;
-                if(freq_cnt < freq_threshold) begin
+                if(freq_cnt == freq_full) begin
                     set_piezo = 1;
                 end 
                 else begin
@@ -180,7 +181,7 @@ module charge #(
             NOTE4: begin
                 sel_freq = freq_G7;
                 sel_dur = DUR_2;
-                if(freq_cnt < freq_threshold) begin
+                if(freq_cnt == freq_full) begin
                     set_piezo = 1;
                 end 
                 else begin
@@ -197,7 +198,7 @@ module charge #(
             NOTE5: begin
                 sel_freq = freq_E7;
                 sel_dur = DUR_3;
-                if(freq_cnt < freq_threshold) begin
+                if(freq_cnt == freq_full) begin
                     set_piezo = 1;
                 end 
                 else begin
@@ -214,7 +215,7 @@ module charge #(
             NOTE6: begin
                 sel_freq = freq_G7;
                 sel_dur = DUR_4;
-                if(freq_cnt < freq_threshold) begin
+                if(freq_cnt == freq_full) begin
                     set_piezo = 1;
                 end 
                 else begin
@@ -238,7 +239,7 @@ module charge #(
         else if(rst_piezo)
             piezo <= 0;
         else if(set_piezo)
-            piezo <= 1;
+            piezo <= ~piezo;
         
     assign piezo_n = (hold) ? 0 : ~piezo;
 

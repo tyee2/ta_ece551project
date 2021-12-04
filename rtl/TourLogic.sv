@@ -37,16 +37,9 @@ module TourLogic(
 
     ///////////////////////////// begin datapath ///////////////////////////////
     // board flop
-    always_ff @(posedge clk, negedge rst_n)
-        if(!rst_n) begin
-            for(int i = 0; i < 5; i = i+1) begin
-                for(int j = 0; j < 5; j = j+1) begin
-                    board[i][j] <= 0;
-                end
-            end
-        end
+    always_ff @(posedge clk)
         // clear upon starting tour
-        else if(clr_board) begin
+        if(clr_board) begin
             for(int i = 0; i < 5; i = i+1) begin
                 for(int j = 0; j < 5; j = j+1) begin
                     board[i][j] <= 0;
@@ -64,10 +57,8 @@ module TourLogic(
             board[curr_x][curr_y] <= 0;
 
     // move pointer
-    always_ff @(posedge clk, negedge rst_n)
-        if(!rst_n)
-            curr_mv_indx <= 0;
-        else if(clr_board)
+    always_ff @(posedge clk)
+        if(clr_board)
             curr_mv_indx <= 0;
         else if(mark)
             curr_mv_indx <= curr_mv_indx + 1;
