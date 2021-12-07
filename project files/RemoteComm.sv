@@ -1,11 +1,11 @@
 module RemoteComm(
 	input 				clk, rst_n,
 	input 				RX,
-	input 				snd_cmd,
+	input 				send_cmd,
 	input [15:0]  		cmd,
 	
 	output 				TX,
-	output reg 			cmd_snt,
+	output reg 			cmd_sent,
 	output [7:0] 		resp,
 	output 				resp_rdy
 );
@@ -20,7 +20,7 @@ module RemoteComm(
 	logic tx_done;
 
 	// SM outputs
-	logic trmt, sel_high, clr_rx_rdy, set_cmd_snt;
+	logic trmt, sel_high, clr_rx_rdy, set_cmd_sent;
 	
 	// instantiation of UART
 	UART iUART(
@@ -41,17 +41,17 @@ module RemoteComm(
 	
 	// high byte sent first, so store low byte
 	always_ff @(posedge clk)
-		if(snd_cmd)
+		if(send_cmd)
 			low_byte <= cmd[7:0];
 	
-	// SR flop for cmd_snt
+	// SR flop for cmd_sent
 	always_ff @(posedge clk, negedge rst_n) begin
 		if(!rst_n)
-			cmd_snt <= 0;
-		else if(snd_cmd)
-			cmd_snt <= 0;
-		else if(set_cmd_snt)
-			cmd_snt <= 1;
+			cmd_sent <= 0;
+		else if(send_cmd)
+			cmd_sent <= 0;
+		else if(set_cmd_sent)
+			cmd_sent <= 1;
 	end
 	
 	////////// State machine //////////
@@ -68,11 +68,11 @@ module RemoteComm(
 		sel_high = 0;
 		clr_rx_rdy = 0;
 		trmt = 0;
-		set_cmd_snt = 0;
+		set_cmd_sent = 0;
 		
 		case(state)
 			default: // IDLE
-				if(snd_cmd) begin
+				if(send_cmd) begin
 					sel_high = 1;
 					trmt = 1;
 					clr_rx_rdy = 1;
@@ -87,7 +87,7 @@ module RemoteComm(
 
 			LOW: begin
 				if(tx_done) begin
-					set_cmd_snt = 1;
+					set_cmd_sent = 1;
 					nxt_state = IDLE;
 				end
 			end
